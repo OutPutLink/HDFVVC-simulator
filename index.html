@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-title" content="HDFVVC Calc">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador HDFVVC / CRRT - Con Biphozyl</title>
+    <title>Simulador HDFVVC / CRRT - Con Saturación de Filtro</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -19,12 +19,12 @@
             <div>
                 <h1 class="text-2xl md:text-3xl font-extrabold text-blue-700 tracking-tight">Simulador Cinético HDFVVC / CRRT</h1>
                 <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">
-                    Modelo biofísico de alta estabilidad con soporte para Biphozyl y soluciones comerciales estándar.
+                    Modelo biofísico avanzado con degradación de membrana y saturación por tiempo de uso (*Fouling*).
                 </p>
             </div>
             <div class="bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl text-right shrink-0">
                 <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider block">Estado del Motor</span>
-                <span class="text-xs text-green-700 font-semibold">● Estable & Actualizado</span>
+                <span class="text-xs text-green-700 font-semibold">● Estable & Con Saturación</span>
             </div>
         </header>
 
@@ -106,22 +106,33 @@
                     </div>
                 </div>
 
-                <!-- PASO 4: HEMOFILTO Y PTM -->
+                <!-- PASO 4: HEMOFILTO, PTM Y SATURACIÓN -->
                 <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-                    <label class="block text-xs font-bold text-slate-700">4. Hemofiltro & Presión Transmembrana (PTM):</label>
+                    <label class="block text-xs font-bold text-slate-700">4. Hemofiltro, PTM y Tiempo de Uso (*Fouling*):</label>
                     <select id="filterSelect" class="w-full p-2 border rounded-lg text-xs font-bold text-slate-800 bg-white">
                         <option value="st150" selected>ST150 (AN69ST - Kuf 45, K0A 480 ml/min)</option>
                         <option value="m100">M100 (AN69 - Kuf 35, K0A 350 ml/min)</option>
                         <option value="oxiris">oXiris (Alta Adsorción - Kuf 40, K0A 420 ml/min)</option>
                     </select>
 
-                    <div class="grid grid-cols-2 gap-2 p-2 bg-indigo-50/50 rounded-lg border text-[11px]">
-                        <div><span class="text-slate-500 block">Coef. Cribado ($S_k$):</span><span id="skDisplay" class="font-extrabold text-indigo-900">--</span></div>
-                        <div><span class="text-slate-500 block">Permeabilidad ($K_{uf}$):</span><span id="kufDisplay" class="font-extrabold text-indigo-900">-- ml/h/mmHg</span></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-600 font-semibold">Uso del Filtro (Horas):</label>
+                            <input type="number" id="filterAgeInput" value="0" min="0" max="72" step="1" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white text-indigo-900">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-600 font-semibold">Coef. Cribado ($S_k$):</label>
+                            <div class="p-1.5 bg-indigo-50/50 rounded-lg border text-xs font-extrabold text-indigo-900 text-center" id="skDisplay">--</div>
+                        </div>
+                    </div>
+
+                    <div class="p-2 bg-indigo-50/30 rounded-lg border text-[11px] space-y-1">
+                        <div class="flex justify-between"><span class="text-slate-600">Kuf Efectivo (con desgaste):</span><span id="kufEffDisplay" class="font-bold text-indigo-900">-- ml/h/mmHg</span></div>
+                        <div class="flex justify-between"><span class="text-slate-600">K0A Efectivo (difusión):</span><span id="k0aEffDisplay" class="font-bold text-indigo-900">-- ml/min</span></div>
                     </div>
                 </div>
 
-                <!-- PASO 5: SOLUCIONES COMERCIALES (INCLUYE BIPHOZYL) -->
+                <!-- PASO 5: SOLUCIONES COMERCIALES -->
                 <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
                     <label class="block text-xs font-bold text-slate-700">5. Selección de Soluciones Comerciales:</label>
                     <div class="grid grid-cols-3 gap-1.5">
@@ -235,7 +246,7 @@
                     <div class="flex justify-between items-center mb-3">
                         <div>
                             <h3 class="text-sm font-bold text-slate-800">1. Evolución Cinética de Concentración $C(t)$</h3>
-                            <p class="text-[11px] text-slate-500">Depuración continua basada en transferencia de masa en hemofiltro</p>
+                            <p class="text-[11px] text-slate-500">Depuración continua considerando saturación y desgaste del filtro</p>
                         </div>
                         <div class="flex items-center space-x-2">
                             <span class="text-xs text-slate-500 font-semibold">Escala:</span>
@@ -254,7 +265,7 @@
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <div class="mb-3">
                         <h3 class="text-sm font-bold text-slate-800">2. Sensibilidad: Dosis de Efluente ($ml/kg/h$) vs. Tiempo a Meta</h3>
-                        <p class="text-[11px] text-slate-500">Curva continua de aceleración de depuración al escalar dosis de efluente.</p>
+                        <p class="text-[11px] text-slate-500">Curva continua de aceleración de depuración con el filtro actual.</p>
                     </div>
                     <div class="relative h-64 md:h-72 w-full">
                         <canvas id="doseTimeChart"></canvas>
@@ -301,7 +312,7 @@
         };
 
         const fluidData = {
-            biphozyl:   { potassium: 4.0, magnesium: 1.5, phosphate: 3.1 }, // Fósforo ~1.0 mmol/L (~3.1 mg/dL)
+            biphozyl:   { potassium: 4.0, magnesium: 1.5, phosphate: 3.1 },
             regiocit:   { potassium: 0.0, magnesium: 1.5, phosphate: 0.0 },
             prismasol2: { potassium: 2.0, magnesium: 1.5, phosphate: 0.0 },
             prismasol4: { potassium: 4.0, magnesium: 1.5, phosphate: 0.0 },
@@ -320,6 +331,7 @@
         const moleculeSelect = document.getElementById('moleculeSelect');
         const molDescription = document.getElementById('molDescription');
         const filterSelect = document.getElementById('filterSelect');
+        const filterAgeInput = document.getElementById('filterAgeInput');
         const inflammationSelect = document.getElementById('inflammationSelect');
         const genderSelect = document.getElementById('genderSelect');
         const heightInput = document.getElementById('heightInput');
@@ -356,6 +368,7 @@
         function updateSimulation() {
             const molKey = moleculeSelect.value;
             const filterKey = filterSelect.value;
+            const filterAge = Math.max(0, parseNum(filterAgeInput.value, 0));
             const inflamKey = inflammationSelect.value;
             const gender = genderSelect.value;
             const fluidPreKey = fluidPreSelect.value;
@@ -364,7 +377,7 @@
             const timeScale = timeScaleSelect.value;
             
             const mol = moleculeData[molKey] || moleculeData.urea;
-            const filter = filterMatrix[filterKey] || filterMatrix.st150;
+            const filterNominal = filterMatrix[filterKey] || filterMatrix.st150;
             molDescription.innerText = mol.desc;
 
             const heightCm = Math.max(100, parseNum(heightInput.value, 175));
@@ -378,15 +391,35 @@
             document.getElementById('weightCalcDisplay').innerText = `${ibw.toFixed(1)} / ${targetWeight.toFixed(1)} kg`;
 
             let volemiaTotalLiters = (targetWeight * (gender === 'male' ? 70 : 65)) / 1000;
-            let Vs_liters = targetWeight * mol.vdTrav; // Volumen de distribución Vs (L)
-            let Vs = Vs_liters * 1000; // ml
+            let Vs_liters = targetWeight * mol.vdTrav; 
+            let Vs = Vs_liters * 1000; 
 
             document.getElementById('volemiaTotalDisplay').innerText = `${volemiaTotalLiters.toFixed(2)} L`;
             document.getElementById('volemiaPlasmaDisplay').innerText = `${Vs_liters.toFixed(2)} L`;
 
             let Sk = mol.sk;
             document.getElementById('skDisplay').innerText = Sk.toFixed(2);
-            document.getElementById('kufDisplay').innerText = `${filter.kuf} ml/h/mmHg`;
+
+            // Cálculo preliminar para estimar FF y penalizar fouling
+            const Qb_min = Math.max(20, parseNum(qbInput.value, 200));
+            const Qb_h = Qb_min * 60;
+            const Qpre = Math.max(0, parseNum(qpreInput.value, 1000));
+            const Qpost = Math.max(0, parseNum(qpostInput.value, 1000));
+            const Qd = Math.max(0, parseNum(qdInput.value, 1500));
+            const Quf_neta = Math.max(0, parseNum(qufnetaInput.value, 100));
+
+            const Qp = Qb_h * (1 - Hct);
+            const Quf_total = Qpre + Qpost + Quf_neta;
+            const FF = (Qp + Qpre) > 0 ? Quf_total / (Qp + Qpre) : 0;
+
+            // Modelo de Degradación / Saturación por tiempo de uso (Fouling)
+            // Se reduce el Kuf y K0A en función de las horas de uso y el estrés por Fracción de Filtración
+            let foulingFactor = Math.max(0.25, 1.0 - (0.007 * filterAge) - (FF > 0.20 ? 0.005 * filterAge : 0));
+            let filterKufEff = filterNominal.kuf * foulingFactor;
+            let filterK0aEff = filterNominal.k0a * foulingFactor;
+
+            document.getElementById('kufEffDisplay').innerText = `${filterKufEff.toFixed(1)} ml/h/mmHg`;
+            document.getElementById('k0aEffDisplay').innerText = `${Math.round(filterK0aEff)} ml/min`;
 
             // Concentración en bolsas comerciales
             const getFluidConc = (fKey) => {
@@ -399,28 +432,15 @@
             const C_dial = getFluidConc(fluidDialKey);
             document.getElementById('solutionConcDisplay').innerText = `Pre: ${C_pre} | Post: ${C_post} | Diálisis: ${C_dial} ${mol.unit}`;
 
-            const Qb_min = Math.max(20, parseNum(qbInput.value, 200));
-            const Qb_h = Qb_min * 60;
-
-            const C0 = parseNum(c0Input.value, 140);
-            const Ctarget = parseNum(ctargetInput.value, 50);
-            const Qpre = Math.max(0, parseNum(qpreInput.value, 1000));
-            const Qpost = Math.max(0, parseNum(qpostInput.value, 1000));
-            const Qd = Math.max(0, parseNum(qdInput.value, 1500));
-            const Quf_neta = Math.max(0, parseNum(qufnetaInput.value, 100));
-
             const Qeff_total = Qpre + Qpost + Qd + Quf_neta;
             const Qeff_kgh = targetWeight > 0 ? Qeff_total / targetWeight : 0;
 
             document.getElementById('qeffMlH').innerText = `${Math.round(Qeff_total)} ml/h`;
             document.getElementById('qeffKgH').innerText = `${Qeff_kgh.toFixed(1)} ml/kg/h`;
 
-            // Hemodinámica y Fracción de Filtración
-            const Qp = Qb_h * (1 - Hct);
-            const Quf_total = Qpre + Qpost + Quf_neta;
-            const FF = (Qp + Qpre) > 0 ? Quf_total / (Qp + Qpre) : 0;
+            // Hemodinámica y PTM corregida con el filtro degradado
             const gamma = (Qp + Qpre) > 0 ? Qp / (Qp + Qpre) : 1;
-            const TMP = Quf_total / filter.kuf;
+            const TMP = filterKufEff > 0 ? Quf_total / filterKufEff : 400;
 
             document.getElementById('ffDisplay').innerText = `${(FF * 100).toFixed(1)}%`;
             document.getElementById('gammaDisplay').innerText = `${gamma.toFixed(3)}`;
@@ -428,22 +448,22 @@
 
             const alertBox = document.getElementById('ffAlertBox');
             const statusDisp = document.getElementById('filterStatusDisplay');
-            if (FF > 0.25 || TMP > 300) {
+            if (FF > 0.25 || TMP > 300 || filterAge > 48) {
                 alertBox.className = "p-3 rounded-xl border bg-red-50 border-red-300 text-red-900 text-xs font-medium space-y-1";
-                statusDisp.innerText = "ALTO RIESGO DE COAGULACIÓN";
-            } else if (FF > 0.20 || TMP > 200) {
+                statusDisp.innerText = filterAge > 48 ? "FILTRO CADUCADO (>48h) / RIESGO" : "ALTO RIESGO DE COAGULACIÓN";
+            } else if (FF > 0.20 || TMP > 200 || filterAge > 36) {
                 alertBox.className = "p-3 rounded-xl border bg-amber-50 border-amber-300 text-amber-900 text-xs font-medium space-y-1";
-                statusDisp.innerText = "Precaución: Presión elevada";
+                statusDisp.innerText = "Precaución: Saturación / PTM Elevada";
             } else {
                 alertBox.className = "p-3 rounded-xl border bg-green-50 border-green-300 text-green-900 text-xs font-medium space-y-1";
                 statusDisp.innerText = "Operación Segura";
             }
 
-            // Saturación Difusiva Michaels (1966)
-            let k0a = filter.k0a * 60;
+            // Saturación Difusiva Michaels (1966) con K0A efectivo
+            let k0a_h = filterK0aEff * 60;
             let Sd = 0;
             if (mol.diffAble && Qd > 0 && (Qp + Qpre) > 0) {
-                let NTU = k0a / (Qp + Qpre);
+                let NTU = k0a_h / (Qp + Qpre);
                 let Z = (Qp + Qpre) / Qd;
                 if (Math.abs(Z - 1.0) < 0.0001) {
                     Sd = NTU / (1.0 + NTU);
@@ -469,10 +489,13 @@
             const Mass_infused = (Qpre * C_pre * Sk) + (Qpost * C_post * Sk) + (Qd * C_dial * Sd);
 
             // Asíntota Ceq
-            let Ceq = K_total > 0 ? (G + Mass_infused) / K_total : C0;
+            let Ceq = K_total > 0 ? (G + Mass_infused) / K_total : parseNum(c0Input.value, 140);
             document.getElementById('ceqDisplay').innerText = `${Ceq.toFixed(2)} ${mol.unit}`;
 
             // Tiempo al objetivo con validación estricta
+            const C0 = parseNum(c0Input.value, 140);
+            const Ctarget = parseNum(ctargetInput.value, 50);
+
             let isAchievable = false;
             let timeToTarget = 0;
             if (K_total > 0) {
@@ -574,7 +597,7 @@
             }
         }
 
-        [moleculeSelect, filterSelect, inflammationSelect, genderSelect, heightInput, weightInput, fluidPreSelect, fluidPostSelect, fluidDialysisSelect, qbInput, hctInput, c0Input, ctargetInput, qpreInput, qpostInput, qdInput, qufnetaInput, timeScaleSelect].forEach(el => {
+        [moleculeSelect, filterSelect, filterAgeInput, inflammationSelect, genderSelect, heightInput, weightInput, fluidPreSelect, fluidPostSelect, fluidDialysisSelect, qbInput, hctInput, c0Input, ctargetInput, qpreInput, qpostInput, qdInput, qufnetaInput, timeScaleSelect].forEach(el => {
             if (el) { 
                 el.addEventListener('input', updateSimulation); 
                 el.addEventListener('change', updateSimulation); 
@@ -585,3 +608,5 @@
     </script>
 </body>
 </html>
+
+```
